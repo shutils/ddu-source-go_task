@@ -1,4 +1,4 @@
-# WIP:ddu-source-go_task
+# ddu-source-go_task
 
 go-task source for ddu.vim
 

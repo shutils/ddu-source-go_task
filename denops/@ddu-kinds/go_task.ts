@@ -6,22 +6,29 @@ import {
 } from "https://deno.land/x/ddu_vim@v3.4.5/types.ts";
 import { ActionData } from "../@ddu-sources/go_task.ts";
 
-type Params = Record<never, never>;
+type Params = {
+  prefix: string;
+  suffix: string;
+};
 
 export class Kind extends BaseKind<Params> {
   actions: Actions<Params> = {
-    execute: async (args: ActionArguments<Params>) => {
+    run: async (args: ActionArguments<Params>) => {
       for (const item of args.items) {
         if (item.action) {
           const action = item.action as ActionData;
-          const cmd = `task --dir ${action.location.taskfile} ${action.name}`;
-          await args.denops.cmd(`!tmux send -t bottom-left '${cmd}' Enter`);
+          const cmd =
+            `${args.kindParams.prefix}task --dir ${action.location.taskfile} ${action.name}${args.kindParams.suffix}`;
+          await args.denops.cmd(cmd);
         }
       }
       return ActionFlags.None;
     },
   };
   params(): Params {
-    return {};
+    return {
+      prefix: "terminal ",
+      suffix: "",
+    };
   }
 }

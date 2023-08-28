@@ -53,8 +53,7 @@ export class Source extends BaseSource<Params> {
     return new ReadableStream({
       async start(controller) {
         const cwd = await fn.getcwd(args.denops);
-        console.log(cwd);
-        const tasks = await getTasks(await fn.getcwd(args.denops));
+        const tasks = await getTasks(cwd);
         const items: Array<Item<ActionData>> = [];
         for (const task of tasks) {
           items.push({
