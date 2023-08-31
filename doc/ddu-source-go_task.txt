@@ -24,6 +24,7 @@ Please install both "ddu.vim" and "denops.vim".
 
 https://github.com/Shougo/ddu.vim
 https://github.com/vim-denops/denops.vim
+https://github.com/Shougo/ddu-kind-file
 
 
 ==============================================================================
@@ -32,16 +33,16 @@ EXAMPLES                                         *ddu-source-go_task-examples*
 	call ddu#start(#{ sources: [#{ name: 'go_task' }] })
 	
 	" Use vim terminal.
-	call ddu#custom#patch_global('kindOptions', #{
-	      \   go_task: #{
+	call ddu#custom#patch_global('actionOptions', #{
+	      \   run: #{
 	      \     prefix: "terminal ",
 	      \     suffix: "",
 	      \   },
 	      \ })
 
 	" Use tmux pane.
-	call ddu#custom#patch_global('kindOptions', #{
-	      \   go_task: #{
+	call ddu#custom#patch_global('actionOptions', #{
+	      \   run: #{
 	      \     prefix: "!tmux send -t 1 '",
 	      \     suffix: "' Enter",
 	      \   },
@@ -49,19 +50,24 @@ EXAMPLES                                         *ddu-source-go_task-examples*
 <
 
 ==============================================================================
-PARAMS                                             *ddu-source-go_task-params*
+PARAMS                                            *ddu-source-go_task-actions*
 
-                                               *ddu-kind-go_task-param-prefix*
-prefix(string)
-		Prefix for commands when running tasks.
+Actions in this project extended ddu-kind-file, so check |ddu-kind-file|
+for more actions.
 
-		Default: "terminal "
+                                               *ddu-source-go_task-action-run*
+run
+  Run the task as an external command.
 
-                                               *ddu-kind-go_task-param-suffix*
-suffix(string)
-		Suffix for commands when running tasks.
+  NOTE: You can run it with any runner by setting parameters.
+  params:
+    prefix(string)
+      Prefix for commands when running tasks.
+	Default: "terminal "
 
-		Default: ""
+    suffix(string)
+      Suffix for commands when running tasks.
+	Default: ""
 
 ==============================================================================
 vim:tw=78:ts=8:ft=help:norl:noet:fen:noet:

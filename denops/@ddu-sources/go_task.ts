@@ -1,4 +1,10 @@
-import { BaseSource, Item } from "https://deno.land/x/ddu_vim@v3.4.4/types.ts";
+import {
+  ActionArguments,
+  ActionFlags,
+  Actions,
+  BaseSource,
+  Item,
+} from "https://deno.land/x/ddu_vim@v3.4.4/types.ts";
 import { GatherArguments } from "https://deno.land/x/ddu_vim@v3.4.4/base/source.ts";
 import { fn } from "https://deno.land/x/ddu_vim@v3.5.1/deps.ts";
 
@@ -19,6 +25,8 @@ type Task = {
 };
 
 export interface ActionData {
+  path: string;
+  lineNr: number;
   name: string;
   desc: string;
   summary: string;
@@ -45,7 +53,7 @@ const getTasks = async (cwd: string): Promise<Array<Task>> => {
 };
 
 export class Source extends BaseSource<Params> {
-  override kind = "go_task";
+  override kind = "file";
 
   override gather(
     args: GatherArguments<Params>,
@@ -59,6 +67,8 @@ export class Source extends BaseSource<Params> {
           items.push({
             word: task.name,
             action: {
+              path: task.location.taskfile,
+              lineNr: task.location.line,
               name: task.name,
               desc: task.desc,
               summary: task.summary,
@@ -77,9 +87,23 @@ export class Source extends BaseSource<Params> {
     });
   }
 
+  override actions: Actions<Params> = {
+    async run(args: ActionArguments<Params>) {
+      for (const item of args.items) {
+        if (item.action) {
+          const action = item.action as ActionData;
+          const cmd =
+            `${args.actionParams.prefix}task --dir ${action.location.taskfile} ${action.name}${args.actionParams.suffix}`;
+          await args.denops.cmd(cmd);
+        }
+      }
+      return ActionFlags.None;
+    },
+  };
+
   override params(): Params {
     return {
-      kind: "go_task",
+      kind: "file",
     };
   }
 }
