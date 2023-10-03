@@ -33,7 +33,7 @@ EXAMPLES                                         *ddu-source-go_task-examples*
 	call ddu#start(#{ sources: [#{ name: 'go_task' }] })
 	
 	" Use vim terminal.
-	call ddu#custom#patch_global('actionOptions', #{
+	call ddu#custom#patch_global('actionParams', #{
 	      \   run: #{
 	      \     prefix: "terminal ",
 	      \     suffix: "",
@@ -41,7 +41,7 @@ EXAMPLES                                         *ddu-source-go_task-examples*
 	      \ })
 
 	" Use tmux pane.
-	call ddu#custom#patch_global('actionOptions', #{
+	call ddu#custom#patch_global('actionParams', #{
 	      \   run: #{
 	      \     prefix: "!tmux send -t 1 '",
 	      \     suffix: "' Enter",
