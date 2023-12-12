@@ -50,12 +50,28 @@ EXAMPLES                                         *ddu-source-go_task-examples*
 <
 
 ==============================================================================
-PARAMS                                            *ddu-source-go_task-actions*
+PARAMS                                            *ddu-source-go_task-params*
 
 Actions in this project extended ddu-kind-file, so check |ddu-kind-file|
 for more actions.
 
-                                               *ddu-source-go_task-action-run*
+                                               *ddu-source-go_task-params-cmd*
+cmd
+  alias for the task command.
+  The task command may be aliased depending on the installation method.
+  e.g. go-task
+  In that case, it is useful to set this param.
+
+  Default: "task"
+
+
+==============================================================================
+PARAMS                                            *ddu-kind-go_task-params*
+
+Actions in this project extended ddu-kind-file, so check |ddu-kind-file|
+for more actions.
+
+                                               *ddu-kind-go_task-action-run*
 run
   Run the task as an external command.
 
@@ -68,6 +84,7 @@ run
     suffix(string)
       Suffix for commands when running tasks.
 	Default: ""
+
 
 ==============================================================================
 vim:tw=78:ts=8:ft=help:norl:noet:fen:noet:

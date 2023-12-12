@@ -10,6 +10,7 @@ import { fn } from "https://deno.land/x/ddu_vim@v3.5.1/deps.ts";
 
 type Params = {
   kind: string;
+  cmd: string;
 };
 
 type Task = {
@@ -25,6 +26,7 @@ type Task = {
 };
 
 export interface ActionData {
+  cmd: string;
   path: string;
   lineNr: number;
   name: string;
@@ -38,8 +40,8 @@ export interface ActionData {
   };
 }
 
-const getTasks = async (cwd: string): Promise<Array<Task>> => {
-  const tasksJson = await new Deno.Command("task", {
+const getTasks = async (cwd: string, cmd: string): Promise<Array<Task>> => {
+  const tasksJson = await new Deno.Command(cmd, {
     args: ["--list-all", "-j"],
     cwd: cwd,
   }).output().then(({ stdout }) => new TextDecoder().decode(stdout));
@@ -61,12 +63,14 @@ export class Source extends BaseSource<Params> {
     return new ReadableStream({
       async start(controller) {
         const cwd = await fn.getcwd(args.denops);
-        const tasks = await getTasks(cwd);
+        const cmd = args.sourceParams.cmd;
+        const tasks = await getTasks(cwd, cmd);
         const items: Array<Item<ActionData>> = [];
         for (const task of tasks) {
           items.push({
             word: task.name,
             action: {
+              cmd: cmd,
               path: task.location.taskfile,
               lineNr: task.location.line,
               name: task.name,
@@ -93,7 +97,7 @@ export class Source extends BaseSource<Params> {
         if (item.action) {
           const action = item.action as ActionData;
           const cmd =
-            `${args.actionParams.prefix}task --dir ${action.location.taskfile} ${action.name}${args.actionParams.suffix}`;
+            `${args.actionParams.prefix}${action.cmd} --dir ${action.location.taskfile} ${action.name}${args.actionParams.suffix}`;
           await args.denops.cmd(cmd);
         }
       }
@@ -104,6 +108,7 @@ export class Source extends BaseSource<Params> {
   override params(): Params {
     return {
       kind: "file",
+      cmd: "task",
     };
   }
 }
