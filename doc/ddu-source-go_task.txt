@@ -79,7 +79,7 @@ run
   params:
     prefix(string)
       Prefix for commands when running tasks.
-	Default: "terminal "
+	Default: "botright new | terminal "
 
     suffix(string)
       Suffix for commands when running tasks.

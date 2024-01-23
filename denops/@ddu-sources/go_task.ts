@@ -3,27 +3,30 @@ import {
   ActionFlags,
   Actions,
   BaseSource,
+  fn,
+  GatherArguments,
   Item,
-} from "https://deno.land/x/ddu_vim@v3.4.4/types.ts";
-import { GatherArguments } from "https://deno.land/x/ddu_vim@v3.4.4/base/source.ts";
-import { fn } from "https://deno.land/x/ddu_vim@v3.5.1/deps.ts";
+  unknownutil as u,
+} from "./deps.ts";
 
 type Params = {
   kind: string;
   cmd: string;
 };
 
-type Task = {
-  name: string;
-  desc: string;
-  summary: string;
-  up_to_date: boolean;
-  location: {
-    line: number;
-    column: number;
-    taskfile: string;
-  };
-};
+const isTask = u.isObjectOf({
+  name: u.isString,
+  desc: u.isString,
+  summary: u.isString,
+  up_to_date: u.isBoolean,
+  ...u.isUnknown,
+  location: u.isObjectOf({
+    line: u.isNumber,
+    column: u.isNumber,
+    taskfile: u.isString,
+    ...u.isUnknown,
+  }),
+});
 
 export interface ActionData {
   cmd: string;
@@ -40,18 +43,19 @@ export interface ActionData {
   };
 }
 
-const getTasks = async (cwd: string, cmd: string): Promise<Array<Task>> => {
-  const tasksJson = await new Deno.Command(cmd, {
+const getTasks = (cwd: string, cmd: string) => {
+  const tasksJsonBin = new Deno.Command(cmd, {
     args: ["--list-all", "-j"],
     cwd: cwd,
-  }).output().then(({ stdout }) => new TextDecoder().decode(stdout));
-  try {
-    JSON.parse(tasksJson);
-  } catch (_error) {
-    return Promise.resolve([]);
-  }
-  const tasksObject = JSON.parse(tasksJson);
-  return Promise.resolve(tasksObject.tasks);
+  }).outputSync();
+  const tasksJsonPlainText = new TextDecoder().decode(tasksJsonBin.stdout);
+  const tasksObject = u.ensure(
+    JSON.parse(tasksJsonPlainText),
+    u.isObjectOf({
+      tasks: u.isArrayOf(isTask),
+    }),
+  );
+  return tasksObject.tasks;
 };
 
 export class Source extends BaseSource<Params> {
@@ -64,8 +68,8 @@ export class Source extends BaseSource<Params> {
       async start(controller) {
         const cwd = await fn.getcwd(args.denops);
         const cmd = args.sourceParams.cmd;
-        const tasks = await getTasks(cwd, cmd);
-        const items: Array<Item<ActionData>> = [];
+        const tasks = getTasks(cwd, cmd);
+        const items: Item<ActionData>[] = [];
         for (const task of tasks) {
           items.push({
             word: task.name,
@@ -93,11 +97,20 @@ export class Source extends BaseSource<Params> {
 
   override actions: Actions<Params> = {
     async run(args: ActionArguments<Params>) {
+      const params = u.ensure(
+        args.actionParams,
+        u.isOptionalOf(u.isObjectOf({
+          prefix: u.isOptionalOf(u.isString),
+          suffix: u.isOptionalOf(u.isString),
+        })),
+      );
+      const prefix = params?.prefix ?? "botright new | terminal ";
+      const suffix = params?.suffix ?? "";
       for (const item of args.items) {
         if (item.action) {
           const action = item.action as ActionData;
           const cmd =
-            `${args.actionParams.prefix}${action.cmd} --dir ${action.location.taskfile} ${action.name}${args.actionParams.suffix}`;
+            `${prefix}${action.cmd} --dir ${action.location.taskfile} ${action.name}${suffix}`;
           await args.denops.cmd(cmd);
         }
       }
